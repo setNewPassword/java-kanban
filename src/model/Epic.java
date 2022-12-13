@@ -23,11 +23,6 @@ public class Epic extends Task {
         this.subTasksID = subTasksID;
     }
 
-//    @Override
-//    public void setTaskStatus(Status taskStatus) {
-//        throw new RuntimeException("Ошибка: статус эпика нельзя установить принудительно!");
-//    }
-
     @Override
     public String toString() {
         return "Epic{" +

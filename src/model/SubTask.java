@@ -23,11 +23,11 @@ public class SubTask extends Task {
         this.epicID = epicID;
     }
 
-    @Override
+    /*@Override
     public void setTaskStatus(Status taskStatus) {
         super.taskStatus = taskStatus;
 
-    }
+    }*/
 
     @Override
     public String toString() {

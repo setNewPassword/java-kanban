@@ -6,7 +6,7 @@ public class Task {
     private String title;
     private String extraInfo;
     private int id;
-    protected Status taskStatus;
+    private Status taskStatus;
 
 
     public Task(String title, String extraInfo) {   // Конструктор — название и инфо
@@ -78,8 +78,12 @@ public class Task {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         Task task = (Task) o;
         return id == task.id && Objects.equals(title, task.title) && Objects.equals(extraInfo, task.extraInfo)
                 && taskStatus == task.taskStatus;

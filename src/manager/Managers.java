@@ -3,12 +3,10 @@ package manager;
 import manager.interfaces.HistoryManager;
 import manager.interfaces.TaskManager;
 
-public abstract class Managers implements TaskManager {
-    private static TaskManager taskManager;
-    private static InMemoryHistoryManager historyManager;
+public class Managers {
 
-    public TaskManager getDefault(){
-        return taskManager;
+    public static TaskManager getDefault(){
+        return new InMemoryTaskManager();
     }
 
     public static HistoryManager getDefaultHistory() {

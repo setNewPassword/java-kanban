@@ -71,7 +71,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public SubTask getSubTask(int id) {                         // Получение сабтаска
         if (subTasks.get(id) != null) {
-           history.add(subTasks.get(id));
+            history.add(subTasks.get(id));
             return subTasks.get(id);
         } else {
             throw new RuntimeException("Ошибка: нет сабтаска с таким id!");
@@ -79,7 +79,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public HashMap<Integer, Task> getTasks() {                   // Получение хешмапы всех тасков
+    public HashMap<Integer, Task> getTasks() {                  // Получение хешмапы всех тасков
         return new HashMap<>(tasks);
     }
 
@@ -95,17 +95,30 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void clearTasks() {                                  // Очистка хешмапы тасков
+        for (Integer id : tasks.keySet()) {                     // Удаление всех тасков из истории
+            history.remove(id);
+        }
         tasks.clear();
     }
 
     @Override
     public void clearEpics() {                                  // Очистка хешмапы эпиков (ну и сабтасков, логично же)
-        epics.clear();
-        subTasks.clear();
+        for (Integer id : subTasks.keySet()) {                  // Удаление всех сабтасков из истории
+            history.remove(id);
+        }
+        subTasks.clear();                                       // Очистка хешмапы сабтасков
+
+        for (Integer id : epics.keySet()) {                     // Удаление всех эпиков из истории
+            history.remove(id);
+        }
+        epics.clear();                                          // Очистка хешмапы эпиков
     }
 
     @Override
     public void clearSubTasks() {                               // Очистка хешмапы сабтасков
+        for (Integer id : subTasks.keySet()) {                  // Удаление всех сабтасков из истории
+            history.remove(id);
+        }
         subTasks.clear();
         for (Integer id : epics.keySet()) {                     // Проходимся по хешмапе эпиков
             epics.get(id).setSubTasksID(null);                  // Очистка списка сабтасков
@@ -115,7 +128,7 @@ public class InMemoryTaskManager implements TaskManager {
 
 
     @Override
-    public ArrayList<Integer> getSubTaskList(int epicID) { // Получить список ID всех сабтасков эпика
+    public ArrayList<Integer> getSubTaskList(int epicID) {      // Получить список ID всех сабтасков эпика
         if (epics.get(epicID) != null) {
             return epics.get(epicID).getSubTasksID();
         } else {
@@ -126,9 +139,9 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void updateStatusEpic(int id) { // Обновить статус эпика
-        Epic epic = new Epic(id, epics.get(id).getTitle(),  // Создаем новую копию эпика
+        Epic epic = new Epic(id, epics.get(id).getTitle(),      // Создаем новую копию эпика
                 epics.get(id).getExtraInfo());
-        epic.setSubTasksID(epics.get(id).getSubTasksID());  // Копируем список сабтасков
+        epic.setSubTasksID(epics.get(id).getSubTasksID());      // Копируем список сабтасков
 
         int statusNew = 0; // Объявляем и инициализируем счетчики для статусов сабтасков
         int statusInProgress = 0;
@@ -147,41 +160,54 @@ public class InMemoryTaskManager implements TaskManager {
             }
 
             if (statusInProgress == 0 && statusDone == 0) {     // Если нет В_ПРОЦЕССЕ и ЗАВЕРШЕНО
-                epic.setTaskStatus(Status.NEW);        // то статус НЬЮ
+                epic.setTaskStatus(Status.NEW);                 // то статус НЬЮ
             } else if (statusDone > 0 || (statusNew < 1 && statusInProgress < 1)) { // Если все ЗАВЕРШЕН
-                epic.setTaskStatus(Status.DONE);                           // то ЗАВЕРШЕНО
+                epic.setTaskStatus(Status.DONE);                // то ЗАВЕРШЕНО
             } else {
-                epic.setTaskStatus(Status.IN_PROGRESS);                    // Иначе — В_ПРОЦЕССЕ
+                epic.setTaskStatus(Status.IN_PROGRESS);         // Иначе — В_ПРОЦЕССЕ
             }
         } else {
-            epic.setTaskStatus(Status.NEW); //Если список сабтасков пустой, тогда НЬЮ
+            epic.setTaskStatus(Status.NEW);                     //Если список сабтасков пустой, тогда НЬЮ
         }
 
         epics.put(epic.getId(), epic);
     }
 
     @Override
-    public void removeTask(int id) {    // Удалить таск
-        tasks.remove(id);
-    }
-
-    @Override
-    public void removeSubTask(int id) {  // Удалить сабтаск
-        if (getSubTaskList(subTasks.get(id).getEpicID()) != null) { // Проверяем, есть ли этот сабтаск в списке у эпика
-            getSubTaskList(subTasks.get(id).getEpicID()).remove(Integer.valueOf(id)); // Удаляем из списка у эпика
-            updateStatusEpic(id); // Обновляем статус эпика
-            subTasks.remove(id); // Удаляем сам объект
+    public void removeTask(int id) {                            // Удалить таск
+        if (tasks.get(id) != null) {                            // Проверяем наличие таска
+            history.remove(id);                                 // Удаляем из истории
+            tasks.remove(id);                                   // Удаляем из хешмапы тасков
         }
     }
 
     @Override
-    public void removeEpic(int id) {                     // Удалить эпик и все его сабтаски
-        if (getSubTaskList(id) != null) {               // Если список сабтасков не пустой
-            for (int subTaskID : getSubTaskList(id)) {  // удаляем все сабтаски
-                subTasks.remove(subTaskID);
+    public void removeSubTask(int id) {                         // Удалить сабтаск
+        if (subTasks.get(id) != null) {                         // Проверяем наличие сабтаска
+            if (getSubTaskList(subTasks.get(id).getEpicID()) != null) { // Есть ли этот сабтаск в списке у эпика?
+                getSubTaskList(subTasks.get(id).getEpicID()).remove(Integer.valueOf(id)); // Удаляем из списка у эпика
+                updateStatusEpic(subTasks.get(id).getEpicID()); // Обновляем статус эпика
+                history.remove(id);                             // Удаляем из истории
+                subTasks.remove(id);                            // Удаляем сам объект
             }
         }
-        epics.remove(id);                               // Удаляем эпик
+
+    }
+
+    @Override
+    public void removeEpic(int id) {                            // Удалить эпик и все его сабтаски
+        if (epics.get(id) != null) {                            // Проверяем наличие эпика
+            if (getSubTaskList(id) != null) {                   // Если список сабтасков не пустой
+                for (int subTaskID : getSubTaskList(id)) {      // удаляем все сабтаски
+                    subTasks.remove(subTaskID);
+                }
+            }
+            for (Integer subTaskId : epics.get(id).getSubTasksID()) {
+                history.remove(subTaskId);                      // Удаляем из истории все сабтаски этого эпика
+            }
+            history.remove(id);                                 // Удаляем из истории сам эпик
+            epics.remove(id);                                   // Удаляем эпик
+        }
     }
 
     @Override
@@ -192,7 +218,7 @@ public class InMemoryTaskManager implements TaskManager {
         subTask.setTaskStatus(subTaskStatus);
 
         subTasks.put(subTask.getId(), subTask);
-        updateStatusEpic(subTask.getEpicID());                      // Обновить статус эпика
+        updateStatusEpic(subTask.getEpicID());                  // Обновить статус эпика
     }
 
     public HistoryManager getHistory() {

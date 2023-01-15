@@ -19,6 +19,7 @@ public class Main {
 
         Task task2 = new Task("Вынести мусор", "Надо не забыть собрать всякую мелочь по всей квартире");
         inMemoryTaskManager.addTask(task2);
+        int task2ID = task2.getId();
         System.out.println("Таск №2 добавлен");
         System.out.println("-----------------------------------------------------------------------------------------");
 
@@ -40,62 +41,13 @@ public class Main {
 
         SubTask subTask2 = new SubTask("Купить бытовую химию", "Таблетки для посудомойки", epic1ID);
         inMemoryTaskManager.addSubTask(subTask2);
+        int subTask2ID = subTask2.getId();
         System.out.println("Сабтаск №2 к эпику №1 добавлен");
 
-        SubTask subTask3 = new SubTask("Занести коврик в тепло", "Лучше так, чем на морозе колотить", epic2ID);
+        SubTask subTask3 = new SubTask("Купить корм для собаки", "Только хороший, а не Педигри", epic1ID);
         inMemoryTaskManager.addSubTask(subTask3);
-        System.out.println("Сабтаск №1 к эпику №2 добавлен");
-        System.out.println("-----------------------------------------------------------------------------------------");
-
-        System.out.println("Список тасков:");
-        for (Integer key : inMemoryTaskManager.getTasks().keySet()) {       // Проходим по ключам в хешмапе тасков
-            System.out.println(inMemoryTaskManager.getTask(key));    // Печатаем каждый таск
-        }
-        System.out.println("-----------------------------------------------------------------------------------------");
-
-        System.out.println("Просмотр истории:");
-        for (int i = 0; i < inMemoryTaskManager.getHistory().getRequestHistory().size(); i++) {
-            System.out.println("№" + (i + 1) + "- id:" + inMemoryTaskManager.getHistory().getRequestHistory().get(i).getId());
-        }
-
-        System.out.println("-----------------------------------------------------------------------------------------");
-
-        System.out.println("Список эпиков:");
-        for (Integer key : inMemoryTaskManager.getEpics().keySet()) {       // Проходим по ключам в хешмапе эпиков
-            System.out.println(inMemoryTaskManager.getEpic(key));    // Печатаем каждый эпик
-        }
-        System.out.println("-----------------------------------------------------------------------------------------");
-
-        System.out.println("Просмотр истории:");
-        for (int i = 0; i < inMemoryTaskManager.getHistory().getRequestHistory().size(); i++) {
-            System.out.println("№" + (i + 1) + "- id:" + inMemoryTaskManager.getHistory().getRequestHistory().get(i).getId());
-        }
-
-        System.out.println("-----------------------------------------------------------------------------------------");
-
-        System.out.println("Список сабтасков:");
-        for (Integer key : inMemoryTaskManager.getSubTasks().keySet()) {       // Проходим по ключам в хешмапе сабтасков
-            System.out.println(inMemoryTaskManager.getSubTask(key));    // Печатаем каждый сабтаск
-        }
-        System.out.println("-----------------------------------------------------------------------------------------");
-
-        System.out.println("Получение одного таска по идентификатору:");
-        System.out.println(inMemoryTaskManager.getTask(task1ID));
-        System.out.println("-----------------------------------------------------------------------------------------");
-
-        System.out.println("Получение одного эпика по идентификатору:");
-        System.out.println(inMemoryTaskManager.getEpic(epic1ID));
-        System.out.println("-----------------------------------------------------------------------------------------");
-
-        System.out.println("Получение одного сабтаска по идентификатору:");
-        System.out.println(inMemoryTaskManager.getSubTask(subTask1ID));
-        System.out.println("-----------------------------------------------------------------------------------------");
-
-        System.out.println("Просмотр истории:");
-        for (int i = 0; i < inMemoryTaskManager.getHistory().getRequestHistory().size(); i++) {
-            System.out.println("№" + (i + 1) + "- id:" + inMemoryTaskManager.getHistory().getRequestHistory().get(i).getId());
-        }
-
+        int subTask3ID = subTask3.getId();
+        System.out.println("Сабтаск №3 к эпику №1 добавлен");
         System.out.println("-----------------------------------------------------------------------------------------");
 
         for (Integer key : inMemoryTaskManager.getTasks().keySet()) {           // Устанавливаем всем таскам статус ЗАВЕРШЕНО
@@ -110,110 +62,65 @@ public class Main {
         System.out.println("Статус самого эпика тоже должен быть DONE.");
         System.out.println("-----------------------------------------------------------------------------------------");
 
-        for (Integer key : inMemoryTaskManager.getEpic(epic2ID).getSubTasksID()) {
-            inMemoryTaskManager.updateStatusSubTask(key, Status.IN_PROGRESS);
-        }
-        System.out.println("Установили статус IN_PROGRESS всем сабтаскам эпика про коврик.");
-        System.out.println("Статус самого эпика тоже должен быть IN_PROGRESS.");
+        System.out.println("Запрашиваем Таск №1");
+        inMemoryTaskManager.getTask(task1ID);
+        System.out.println("Запрашиваем Таск №2");
+        inMemoryTaskManager.getTask(task2ID);
+        System.out.println("Запрашиваем Эпик №2 (ПУСТОЙ)");
+        inMemoryTaskManager.getEpic(epic2ID);
         System.out.println("-----------------------------------------------------------------------------------------");
 
-        System.out.println("Просмотр истории:");
-        for (int i = 0; i < inMemoryTaskManager.getHistory().getRequestHistory().size(); i++) {
-            System.out.println("№" + (i + 1) + "- id:" + inMemoryTaskManager.getHistory().getRequestHistory().get(i).getId());
-        }
-
+        System.out.println("Запрашиваем историю");
+        System.out.println("Должно быть: Таск №1, Таск №2, Эпик №2");
+        System.out.println(inMemoryTaskManager.getHistory().getHistory());
         System.out.println("-----------------------------------------------------------------------------------------");
 
-        System.out.println("Список тасков:");
-        for (Integer key : inMemoryTaskManager.getTasks().keySet()) {       // Проходим по ключам в хешмапе тасков
-            System.out.println(inMemoryTaskManager.getTask(key));    // Печатаем каждый таск
-        }
+        System.out.println("Запрашиваем Эпик №1");
+        inMemoryTaskManager.getEpic(epic1ID);
+        System.out.println("Запрашиваем Таск №2");
+        inMemoryTaskManager.getTask(task2ID);
         System.out.println("-----------------------------------------------------------------------------------------");
 
-        System.out.println("Список эпиков:");
-        for (Integer key : inMemoryTaskManager.getEpics().keySet()) {       // Проходим по ключам в хешмапе эпиков
-            System.out.println(inMemoryTaskManager.getEpic(key));    // Печатаем каждый эпик
-        }
+        System.out.println("Запрашиваем историю");
+        System.out.println("Должно быть: Таск №1, Эпик №2, Эпик №1, Таск №2");
+        System.out.println(inMemoryTaskManager.getHistory().getHistory());
         System.out.println("-----------------------------------------------------------------------------------------");
 
-        System.out.println("Список сабтасков:");
-        for (Integer key : inMemoryTaskManager.getSubTasks().keySet()) {       // Проходим по ключам в хешмапе сабтасков
-            System.out.println(inMemoryTaskManager.getSubTask(key));    // Печатаем каждый сабтаск
-        }
+        System.out.println("Запрашиваем Сабтаск №3");
+        inMemoryTaskManager.getSubTask(subTask3ID);
+        System.out.println("Запрашиваем Сабтаск №2");
+        inMemoryTaskManager.getSubTask(subTask2ID);
+        System.out.println("Запрашиваем Сабтаск №1");
+        inMemoryTaskManager.getSubTask(subTask1ID);
         System.out.println("-----------------------------------------------------------------------------------------");
 
-        System.out.println("Удаляем один таск");
+        System.out.println("Запрашиваем историю");
+        System.out.println("Должно быть: Таск №1, Эпик №2, Эпик №1, Таск №2, Сабтаск №3, Сабтаск №2, Сабтаск №1");
+        System.out.println(inMemoryTaskManager.getHistory().getHistory());
+        System.out.println("-----------------------------------------------------------------------------------------");
+
+        System.out.println("Удаляем Таск №1");
+        System.out.println("Он также должен пропасть из истории");
         inMemoryTaskManager.removeTask(task1ID);
+        System.out.println("Запрашиваем историю");
+        System.out.println("Должно быть: Эпик №2, Эпик №1, Таск №2, Сабтаск №3, Сабтаск №2, Сабтаск №1");
+        System.out.println(inMemoryTaskManager.getHistory().getHistory());
         System.out.println("-----------------------------------------------------------------------------------------");
 
-        System.out.println("Удаляем один эпик");
+        System.out.println("Удаляем Сабтаск №2");
+        System.out.println("Он также должен пропасть из истории");
+        inMemoryTaskManager.removeSubTask(subTask2ID);
+        System.out.println("Запрашиваем историю");
+        System.out.println("Должно быть: Эпик №2, Эпик №1, Таск №2, Сабтаск №3, Сабтаск №1");
+        System.out.println(inMemoryTaskManager.getHistory().getHistory());
+        System.out.println("-----------------------------------------------------------------------------------------");
+
+        System.out.println("Удаляем Эпик №1 (с сабтасками)");
+        System.out.println("Он также должен пропасть из истории, и все его сабтаски тоже");
         inMemoryTaskManager.removeEpic(epic1ID);
-        System.out.println("-----------------------------------------------------------------------------------------");
-
-        System.out.println("Просмотр истории:");
-        for (int i = 0; i < inMemoryTaskManager.getHistory().getRequestHistory().size(); i++) {
-            System.out.println("№" + (i + 1) + "- id:" + inMemoryTaskManager.getHistory().getRequestHistory().get(i).getId());
-        }
-
-        System.out.println("-----------------------------------------------------------------------------------------");
-
-        System.out.println("Список тасков:");
-        for (Integer key : inMemoryTaskManager.getTasks().keySet()) {       // Проходим по ключам в хешмапе тасков
-            System.out.println(inMemoryTaskManager.getTask(key));    // Печатаем каждый таск
-        }
-        System.out.println("-----------------------------------------------------------------------------------------");
-
-        System.out.println("Список эпиков:");
-        for (Integer key : inMemoryTaskManager.getEpics().keySet()) {       // Проходим по ключам в хешмапе эпиков
-            System.out.println(inMemoryTaskManager.getEpic(key));    // Печатаем каждый эпик
-        }
-        System.out.println("-----------------------------------------------------------------------------------------");
-
-        System.out.println("Список сабтасков:");
-        for (Integer key : inMemoryTaskManager.getSubTasks().keySet()) {       // Проходим по ключам в хешмапе сабтасков
-            System.out.println(inMemoryTaskManager.getSubTask(key));    // Печатаем каждый сабтаск
-        }
-        System.out.println("-----------------------------------------------------------------------------------------");
-
-        System.out.println("Очищаем список сабтасков");
-        inMemoryTaskManager.clearSubTasks();
-        System.out.println("У эпиков должен быть статус NEW");
-        System.out.println("Список эпиков:");
-        for (Integer key : inMemoryTaskManager.getEpics().keySet()) {       // Проходим по ключам в хешмапе эпиков
-            System.out.println(inMemoryTaskManager.getEpics().get(key));    // Печатаем каждый эпик
-        }
-        System.out.println("-----------------------------------------------------------------------------------------");
-
-        System.out.println("Очищаем список эпиков");
-        inMemoryTaskManager.clearEpics();
-        System.out.println("-----------------------------------------------------------------------------------------");
-
-        System.out.println("Очищаем список тасков");
-        inMemoryTaskManager.clearTasks();
-        System.out.println("-----------------------------------------------------------------------------------------");
-
-        System.out.println("Список тасков:");
-        for (Integer key : inMemoryTaskManager.getTasks().keySet()) {       // Проходим по ключам в хешмапе тасков
-            System.out.println(inMemoryTaskManager.getTask(key));    // Печатаем каждый таск
-        }
-        System.out.println("-----------------------------------------------------------------------------------------");
-
-        System.out.println("Список эпиков:");
-        for (Integer key : inMemoryTaskManager.getEpics().keySet()) {       // Проходим по ключам в хешмапе эпиков
-            System.out.println(inMemoryTaskManager.getEpic(key));    // Печатаем каждый эпик
-        }
-        System.out.println("-----------------------------------------------------------------------------------------");
-
-        System.out.println("Список сабтасков:");
-        for (Integer key : inMemoryTaskManager.getSubTasks().keySet()) {       // Проходим по ключам в хешмапе сабтасков
-            System.out.println(inMemoryTaskManager.getSubTask(key));    // Печатаем каждый сабтаск
-        }
-        System.out.println("-----------------------------------------------------------------------------------------");
-
-        System.out.println("Просмотр истории:");
-        for (int i = 0; i < inMemoryTaskManager.getHistory().getRequestHistory().size(); i++) {
-            System.out.println("№" + (i + 1) + "- id:" + inMemoryTaskManager.getHistory().getRequestHistory().get(i).getId());
-        }
+        System.out.println("Запрашиваем историю");
+        System.out.println("Должно быть: Эпик №2, Таск №2");
+        System.out.println(inMemoryTaskManager.getHistory().getHistory());
 
         System.out.println("-----------------------------------------------------------------------------------------");
     }

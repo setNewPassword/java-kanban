@@ -3,7 +3,7 @@ package model;
 import java.util.Objects;
 
 public class SubTask extends Task {
-    private int epicID; // Поле хранит ID эпика, к которому относится подзадача
+    private final int epicID; // Поле хранит ID эпика, к которому относится подзадача
 
     public SubTask(String title, String extraInfo, int epicID) {
         super(title, extraInfo, Status.NEW);
@@ -19,17 +19,13 @@ public class SubTask extends Task {
         return epicID;
     }
 
-    public void setEpicID(int epicID) {
-        this.epicID = epicID;
-    }
-
     @Override
     public String toString() {
         return "SubTask{" + "id=" + super.getId() +
-                        ", epicID=" + epicID +
-                        ", title='" + super.getTitle() + '\'' +
-                        ", extraInfo='" + super.getExtraInfo() + '\'' +
-                        ", taskStatus=" + super.getTaskStatus() + '}';
+                ", epicID=" + epicID +
+                ", title='" + super.getTitle() + '\'' +
+                ", extraInfo='" + super.getExtraInfo() + '\'' +
+                ", taskStatus=" + super.getTaskStatus() + '}';
     }
 
     @Override

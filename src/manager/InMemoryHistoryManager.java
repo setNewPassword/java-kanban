@@ -38,9 +38,6 @@ public class InMemoryHistoryManager implements HistoryManager {
         private Node<T> tail;                                           // Ссылка на хвост
 
         public void addLast(T element) {                                // Добавление элемента в историю
-            if (memory.containsKey(element.getId())) {                  // Если хешмапа уже содержит такой элемент
-                removeNode(memory.get(element.getId()));                // удаляем его из нее, чтоб не было дубликатов
-            }
             final Node<T> oldTail = tail;                               // Сохраняем старый хвост
             final Node<T> newNode = new Node<>(oldTail, element, null); // Новая нода, prev это старый хвост
             tail = newNode;                                             // Хвост теперь новая нода
@@ -49,7 +46,10 @@ public class InMemoryHistoryManager implements HistoryManager {
             } else {                                                    // Если мапа не пустая
                 oldTail.next = newNode;                                 // то в старый хвост кладем ссылку на новую ноду
             }
-            memory.put(element.getId(), newNode);                       // Кладем ноду в хешмапу
+            Node<T> oldNode = memory.put(element.getId(), newNode);     // Кладем новую ноду в хешмапу
+            if (oldNode != null) {                                      // Если элемент с таким айди в хешмапе был
+                removeNode(oldNode);                                    // то его нужно удалить из цепочки нод
+            }
         }
 
         private void removeNode(Node<T> node) {                         // Удаление ноды из списка

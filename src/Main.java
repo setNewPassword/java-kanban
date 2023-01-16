@@ -1,4 +1,5 @@
 import manager.InMemoryTaskManager;
+import manager.Managers;
 import model.Epic;
 import model.Status;
 import model.SubTask;
@@ -10,7 +11,7 @@ public class Main {
     public static void main(String[] args) {
 
         System.out.println("Поехали!");
-        InMemoryTaskManager inMemoryTaskManager = new InMemoryTaskManager();
+        InMemoryTaskManager inMemoryTaskManager = (InMemoryTaskManager) Managers.getDefault();
 
         Task task1 = new Task("Выгулять собаку", "Бегать, дурачиться и валяться в снегу");
         inMemoryTaskManager.addTask(task1);

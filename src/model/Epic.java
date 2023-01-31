@@ -23,6 +23,20 @@ public class Epic extends Task {
         this.subTasksID = subTasksID;
     }
 
+    public TaskType getTaskType() {
+        return TaskType.EPIC;
+    }
+    public String getSubtasksString() {             // Возвращение строки сабтасков эпика через запятую
+        if (subTasksID != null) {
+            String result = "";
+            for (int id : subTasksID) {
+                result = String.join(",", Integer.toString(id));
+            }
+            return result;
+        } else {
+            return " ";
+        }
+    }
     @Override
     public String toString() {
         return "Epic{" +

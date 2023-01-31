@@ -66,6 +66,10 @@ public class Task {
         return taskStatus;
     }
 
+    public TaskType getTaskType() {
+        return TaskType.TASK;
+    }
+
     @Override
     public String toString() {
         return "Task{" +

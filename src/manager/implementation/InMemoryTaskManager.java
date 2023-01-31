@@ -1,5 +1,6 @@
-package manager;
+package manager.implementation;
 
+import manager.Managers;
 import manager.interfaces.HistoryManager;
 import manager.interfaces.TaskManager;
 import model.Epic;
@@ -80,17 +81,17 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public HashMap<Integer, Task> getTasks() {                  // Получение хешмапы всех тасков
-        return new HashMap<>(tasks);
+        return tasks;
     }
 
     @Override
     public HashMap<Integer, Epic> getEpics() {                  // Получение хешмапы всех эпиков
-        return new HashMap<>(epics);
+        return epics;
     }
 
     @Override
     public HashMap<Integer, SubTask> getSubTasks() {            // Получение хешмапы всех сабтасков
-        return new HashMap<>(subTasks);
+        return subTasks;
     }
 
     @Override

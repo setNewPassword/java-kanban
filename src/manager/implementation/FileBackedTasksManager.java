@@ -11,15 +11,12 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class FileBackedTasksManager extends InMemoryTaskManager {
     private final Path path;                // Путь для сохранения файла бэкапа
     private final String delimiter = ";";   // Разделитель для CSV. Пока не решил, как разделять поля,
-    // поэтому разделитель в переменной, чтоб не переписывать его в методах.
+                                            // поэтому разделитель в переменной, чтоб не переписывать его в методах.
 
     public FileBackedTasksManager(@NotNull File file) {
         this.path = file.toPath();
@@ -139,19 +136,19 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
                     "\n"}));
 
             for (Map.Entry<Integer, Task> entry : getTasks().entrySet()) {          // Пишем в файл таски
-                writer.write(getTaskString(entry.getValue()));
-                writer.write("\n");
+                writer.append(getTaskString(entry.getValue()))
+                        .write("\n");
             }
             for (Map.Entry<Integer, Epic> entry : getEpics().entrySet()) {          // Пишем в файл эпики
-                writer.write(getTaskString(entry.getValue()));
-                writer.write("\n");
+                writer.append(getTaskString(entry.getValue()))
+                        .write("\n");
             }
             for (Map.Entry<Integer, SubTask> entry : getSubTasks().entrySet()) {    // Пишем в файл сабтаски
-                writer.write(getTaskString(entry.getValue()));
-                writer.write("\n");
+                writer.append(getTaskString(entry.getValue()))
+                        .write("\n");
             }
-            writer.write("\n");                                                 // Пустая строка, разделитель
-            writer.write(historyToString(getHistory()));                            // Пишем в файл историю
+            writer.append("\n").                                                    // Пустая строка, разделитель
+                    write(historyToString(getHistory()));                       // Пишем в файл историю
         } catch (IOException e) {
             e.printStackTrace();
             throw new ManagerSaveException(e.getMessage());
@@ -338,16 +335,16 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
 
     }
 
-    public static @NotNull List<Integer> historyListFromString(String value) { // История из строки в ArrayList
+    public static Optional<List<Integer>> historyListFromString(String value) { // История из строки в ArrayList
         List<Integer> historyList = new ArrayList<>();
         if (value != null) {
             String[] historyArray = value.split(",");
             for (String task : historyArray) {
                 historyList.add(Integer.parseInt(task));
             }
-            return historyList;
+            return Optional.of(historyList);
         } else {
-            return Collections.emptyList();
+            return Optional.of(Collections.emptyList());
         }
     }
 
@@ -385,20 +382,20 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
                         fileBackedTasksManager.addTaskByType(str);                          // Добавляем таски по типу
                     } else if (str != null && str.isEmpty()) {                              // Если строка-разделитель
                         String historyLine = bufferedReader.readLine();                     // Читаем следующую строку
-                        List<Integer> historyList = historyListFromString(historyLine);
+                        List<Integer> historyList = new ArrayList<>();
+                        if (historyListFromString(historyLine).isPresent()) {
+                            historyList = historyListFromString(historyLine).get();
+                        }
                         Map<Integer, Task> taskMap = fileBackedTasksManager.getTasks();     // Получаем ссылки на мапы
                         Map<Integer, Epic> epicMap = fileBackedTasksManager.getEpics();
                         Map<Integer, SubTask> subTaskMap = fileBackedTasksManager.getSubTasks();
                         if (historyList != null) {
                             for (Integer id : historyList) {
                                 if (taskMap.containsKey(id)) {
-//                                    fileBackedTasksManager.getTaskSuper(id);
                                     fileBackedTasksManager.getTask(id);
                                 } else if (epicMap.containsKey(id)) {
-//                                    fileBackedTasksManager.getEpicSuper(id);
                                     fileBackedTasksManager.getEpic(id);
                                 } else if (subTaskMap.containsKey(id)) {
-//                                    fileBackedTasksManager.getSubTaskSuper(id);
                                     fileBackedTasksManager.getSubTask(id);
                                 }
 

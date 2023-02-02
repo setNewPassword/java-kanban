@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class FileBackedTasksManager extends InMemoryTaskManager {
     private final Path path;                // Путь для сохранения файла бэкапа
@@ -278,7 +279,8 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
     }
 
     public String getTaskString(@NotNull Epic epic) {           // Эпик в строку
-        return String.join(delimiter, new String[]{Integer.toString(epic.getId()),                 // айдишник
+        return String.join(delimiter, new String[]{
+                Integer.toString(epic.getId()),                 // айдишник
                 epic.getTaskType().name(),                      // Тип задачи
                 epic.getTitle(),                                // Заголовок
                 epic.getExtraInfo(),                            // Подробное описание
@@ -288,7 +290,8 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
     }
 
     public String getTaskString(@NotNull SubTask subTask) {     // Сабтаск в строку
-        return String.join(delimiter, new String[]{Integer.toString(subTask.getId()),              // айдишник
+        return String.join(delimiter, new String[]{
+                Integer.toString(subTask.getId()),              // айдишник
                 subTask.getTaskType().name(),                   // Тип задачи
                 subTask.getTitle(),                             // Заголовок
                 subTask.getExtraInfo(),                         // Подробное описание
@@ -336,15 +339,13 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
     }
 
     public static Optional<List<Integer>> historyListFromString(String value) { // История из строки в ArrayList
-        List<Integer> historyList = new ArrayList<>();
         if (value != null) {
-            String[] historyArray = value.split(",");
-            for (String task : historyArray) {
-                historyList.add(Integer.parseInt(task));
-            }
+            List<Integer> historyList = Arrays.stream(value.split(","))
+                    .map(Integer::parseInt)
+                    .collect(Collectors.toList());
             return Optional.of(historyList);
         } else {
-            return Optional.of(Collections.emptyList());
+            return Optional.empty();
         }
     }
 
@@ -382,26 +383,19 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
                         fileBackedTasksManager.addTaskByType(str);                          // Добавляем таски по типу
                     } else if (str != null && str.isEmpty()) {                              // Если строка-разделитель
                         String historyLine = bufferedReader.readLine();                     // Читаем следующую строку
-                        List<Integer> historyList = new ArrayList<>();
-                        if (historyListFromString(historyLine).isPresent()) {
-                            historyList = historyListFromString(historyLine).get();
-                        }
+                        List<Integer> historyList = historyListFromString(historyLine).orElse(Collections.emptyList());
                         Map<Integer, Task> taskMap = fileBackedTasksManager.getTasks();     // Получаем ссылки на мапы
                         Map<Integer, Epic> epicMap = fileBackedTasksManager.getEpics();
                         Map<Integer, SubTask> subTaskMap = fileBackedTasksManager.getSubTasks();
-                        if (historyList != null) {
-                            for (Integer id : historyList) {
-                                if (taskMap.containsKey(id)) {
-                                    fileBackedTasksManager.getTask(id);
-                                } else if (epicMap.containsKey(id)) {
-                                    fileBackedTasksManager.getEpic(id);
-                                } else if (subTaskMap.containsKey(id)) {
-                                    fileBackedTasksManager.getSubTask(id);
-                                }
-
+                        for (Integer id : historyList) {
+                            if (taskMap.containsKey(id)) {
+                                fileBackedTasksManager.getTask(id);
+                            } else if (epicMap.containsKey(id)) {
+                                fileBackedTasksManager.getEpic(id);
+                            } else if (subTaskMap.containsKey(id)) {
+                                fileBackedTasksManager.getSubTask(id);
                             }
                         }
-
                     }
                 }
             } catch (IOException e) {
@@ -416,6 +410,4 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         }
         return fileBackedTasksManager;
     }
-
-
 }

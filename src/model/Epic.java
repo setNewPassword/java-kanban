@@ -1,9 +1,12 @@
 package model;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.Optional;
 
 public class Epic extends Task {
+    private LocalDateTime endTime;
     private ArrayList<Integer> subTasksID = new ArrayList<>();      // Здесь хранится ID подзадач.
 
 
@@ -26,6 +29,20 @@ public class Epic extends Task {
     public TaskType getTaskType() {
         return TaskType.EPIC;
     }
+
+    @Override
+    public Optional<LocalDateTime> getEndTime() {
+        if (endTime == null) {
+            return Optional.empty();
+        } else {
+            return Optional.of(endTime);
+        }
+    }
+
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
+    }
+
     public String getSubtasksString() {             // Возвращение строки сабтасков эпика через запятую
         if (subTasksID != null) {
             String result = "";
@@ -45,6 +62,9 @@ public class Epic extends Task {
                 ", id=" + super.getId() +
                 ", taskStatus=" + super.getTaskStatus() +
                 ", subTasksID=" + subTasksID +
+                ", startTime=" + super.getStartTime() +
+                ", duration=" + super.getDuration() +
+                ", endTime=" + endTime +
                 '}';
     }
 
@@ -54,11 +74,11 @@ public class Epic extends Task {
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
         Epic epic = (Epic) o;
-        return Objects.equals(subTasksID, epic.subTasksID);
+        return Objects.equals(subTasksID, epic.subTasksID) && Objects.equals(endTime, epic.endTime);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), subTasksID);
+        return Objects.hash(super.hashCode(), subTasksID, endTime);
     }
 }

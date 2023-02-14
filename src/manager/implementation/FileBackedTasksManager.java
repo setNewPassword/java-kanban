@@ -1,20 +1,22 @@
 package manager.implementation;
-
 import manager.Managers;
 import manager.exception.ManagerSaveException;
 import manager.interfaces.HistoryManager;
 import manager.interfaces.TaskManager;
 import model.*;
 import org.jetbrains.annotations.NotNull;
-
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class FileBackedTasksManager extends InMemoryTaskManager {
+
     private final Path path;                // Путь для сохранения файла бэкапа
     private final String delimiter = ";";   // Разделитель для CSV. Пока не решил, как разделять поля,
                                             // поэтому разделитель в переменной, чтоб не переписывать его в методах.
@@ -27,39 +29,39 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         FileBackedTasksManager manager1 = Managers.getDefaultFBTM();
 
         Task task1 = new Task("Выгулять собаку", "Бегать, дурачиться и валяться в снегу");
-        manager1.addTaskWithID(task1);
+        manager1.addTask(task1);
         int task1ID = task1.getId();
         System.out.println("Таск №1 добавлен");
 
         Task task2 = new Task("Вынести мусор", "Надо не забыть собрать всякую мелочь по всей квартире");
-        manager1.addTaskWithID(task2);
+        manager1.addTask(task2);
         int task2ID = task2.getId();
         System.out.println("Таск №2 добавлен");
         System.out.println("-----------------------------------------------------------------------------------------");
 
         Epic epic1 = new Epic("Съездить в супермаркет", "Закупиться всяким на месяц");
-        manager1.addEpicWithID(epic1);
+        manager1.addEpic(epic1);
         int epic1ID = epic1.getId();
         System.out.println("Пустой эпик №1 добавлен");
 
         Epic epic2 = new Epic("Убрать лёд с коврика в машине", "А то надоело, что когда жмешь на педали, ноги скользят");
-        manager1.addEpicWithID(epic2);
+        manager1.addEpic(epic2);
         int epic2ID = epic2.getId();
         System.out.println("Пустой эпик №2 добавлен");
         System.out.println("-----------------------------------------------------------------------------------------");
 
         SubTask subTask1 = new SubTask("Купить продукты", "Молоко, сыр, спагетти, яйца", epic1ID);
-        manager1.addSubTaskWithID(subTask1);
+        manager1.addSubTask(subTask1);
         int subTask1ID = subTask1.getId();
         System.out.println("Сабтаск №1 к эпику №1 добавлен");
 
         SubTask subTask2 = new SubTask("Купить бытовую химию", "Таблетки для посудомойки", epic1ID);
-        manager1.addSubTaskWithID(subTask2);
+        manager1.addSubTask(subTask2);
         int subTask2ID = subTask2.getId();
         System.out.println("Сабтаск №2 к эпику №1 добавлен");
 
         SubTask subTask3 = new SubTask("Купить корм для собаки", "Только хороший, а не Педигри", epic1ID);
-        manager1.addSubTaskWithID(subTask3);
+        manager1.addSubTask(subTask3);
         int subTask3ID = subTask3.getId();
         System.out.println("Сабтаск №3 к эпику №1 добавлен");
         System.out.println("-----------------------------------------------------------------------------------------");
@@ -134,6 +136,8 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
                     "extraInfo",
                     "TaskStatus",
                     "epicID",
+                    "startTime",
+                    "duration",
                     "\n"}));
 
             for (Map.Entry<Integer, Task> entry : getTasks().entrySet()) {          // Пишем в файл таски
@@ -159,30 +163,31 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
 
     // Так как айди задач нам не нужно присваивать заново, а нужно взять их из файла,
     // то нужно переопределить методы добавления задач без участия счетчика айдишников.
-    @Override
-    public void addTask(Task task) {
+    public void addTaskWithExistingID(Task task) {
         getTasks().put(task.getId(), task);
         save();
     }
 
-    public void addTaskWithID(Task task) {
+    @Override
+    public int addTask(Task task) {
         super.addTask(task);
         save();
+        return task.getId();
     }
 
-    @Override
-    public void addEpic(Epic epic) {
+    public void addEpicWithExistingID(Epic epic) {
         getEpics().put(epic.getId(), epic);
         save();
     }
 
-    public void addEpicWithID(Epic epic) {
+    @Override
+    public int addEpic(Epic epic) {
         super.addEpic(epic);
         save();
+        return epic.getId();
     }
 
-    @Override
-    public void addSubTask(@NotNull SubTask subTask) {
+    public void addSubTaskWithExistingID(@NotNull SubTask subTask) {
         if (!getEpics().containsKey(subTask.getEpicID())) {
             throw new RuntimeException("Ошибка: эпик отсутствует!");
         }
@@ -192,9 +197,11 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         save();
     }
 
-    public void addSubTaskWithID(SubTask subTask) {
+    @Override
+    public int addSubTask(SubTask subTask) {
         super.addSubTask(subTask);
         save();
+        return subTask.getId();
     }
 
     // Переопределяем методы, модифицирующие хешмапы с задачами и историю
@@ -268,44 +275,88 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
     }
 
     public String getTaskString(@NotNull Task task) {           // Таск в строку
-        return String.join(delimiter, new String[]{
-                Integer.toString(task.getId()),                 // айдишник
-                task.getTaskType().name(),                      // Тип задачи
-                task.getTitle(),                                // Заголовок
-                task.getExtraInfo(),                            // Подробное описание
-                task.getTaskStatus().name(),                    // Статус
-                " "                                             // Родительский эпик (неактуально для таска)
-        });
+        if (task.getStartTime() == null) {
+            return String.join(delimiter, new String[]{
+                    Integer.toString(task.getId()),                 // айдишник
+                    task.getTaskType().name(),                      // Тип задачи
+                    task.getTitle(),                                // Заголовок
+                    task.getExtraInfo(),                            // Подробное описание
+                    task.getTaskStatus().name(),                    // Статус
+                    " ",                                            // Родительский эпик (неактуально для таска)
+                    " ",                                            // startTime (неактуально)
+                    " "                                             // duration (неактуально)
+            });
+        } else {
+            return String.join(delimiter, new String[]{
+                    Integer.toString(task.getId()),                 // айдишник
+                    task.getTaskType().name(),                      // Тип задачи
+                    task.getTitle(),                                // Заголовок
+                    task.getExtraInfo(),                            // Подробное описание
+                    task.getTaskStatus().name(),                    // Статус
+                    " ",                                            // Родительский эпик (неактуально для таска)
+                    task.getStartTime().format(DateTimeFormatter.ISO_DATE_TIME),    // startTime
+                    String.valueOf(task.getDuration().toMinutes())                  // duration
+            });
+        }
     }
 
-    public String getTaskString(@NotNull Epic epic) {           // Эпик в строку
+    public String getTaskString(@NotNull Epic epic) {               // Эпик в строку
         return String.join(delimiter, new String[]{
-                Integer.toString(epic.getId()),                 // айдишник
-                epic.getTaskType().name(),                      // Тип задачи
-                epic.getTitle(),                                // Заголовок
-                epic.getExtraInfo(),                            // Подробное описание
-                " ",                                            // Статус (неактуально для эпика, сам рассчитает)
-                " "                                             // Родительский эпик (неактуально для эпика)
+                Integer.toString(epic.getId()),                     // айдишник
+                epic.getTaskType().name(),                          // Тип задачи
+                epic.getTitle(),                                    // Заголовок
+                epic.getExtraInfo(),                                // Подробное описание
+                " ",                                                // Статус (неактуально для эпика, сам рассчитает)
+                " ",                                                // Родительский эпик (неактуально для эпика)
+                " ",                                                // startTime (неактуально, сам рассчитает)
+                " "                                                 // duration (неактуально, сам рассчитает)
         });
     }
 
     public String getTaskString(@NotNull SubTask subTask) {     // Сабтаск в строку
-        return String.join(delimiter, new String[]{
-                Integer.toString(subTask.getId()),              // айдишник
-                subTask.getTaskType().name(),                   // Тип задачи
-                subTask.getTitle(),                             // Заголовок
-                subTask.getExtraInfo(),                         // Подробное описание
-                subTask.getTaskStatus().name(),                 // Статус
-                Integer.toString(subTask.getEpicID())           // Родительский эпик
-        });
+        if (subTask.getStartTime() == null) {
+            return String.join(delimiter, new String[]{
+                    Integer.toString(subTask.getId()),              // айдишник
+                    subTask.getTaskType().name(),                   // Тип задачи
+                    subTask.getTitle(),                             // Заголовок
+                    subTask.getExtraInfo(),                         // Подробное описание
+                    subTask.getTaskStatus().name(),                 // Статус
+                    Integer.toString(subTask.getEpicID()),          // Родительский эпик
+                    " ",                                            // startTime (неактуально)
+                    " "                                             // duration (неактуально)
+            });
+        } else {
+            return String.join(delimiter, new String[]{
+                    Integer.toString(subTask.getId()),              // айдишник
+                    subTask.getTaskType().name(),                   // Тип задачи
+                    subTask.getTitle(),                             // Заголовок
+                    subTask.getExtraInfo(),                         // Подробное описание
+                    subTask.getTaskStatus().name(),                 // Статус
+                    Integer.toString(subTask.getEpicID()),          // Родительский эпик
+                    subTask.getStartTime().format(DateTimeFormatter.ISO_DATE_TIME), // startTime
+                    String.valueOf(subTask.getDuration().toMinutes())               // duration
+            });
+        }
+
     }
 
-    public Task getTaskFromString(String id, String title, String extraInfo, String status) {
-        return new Task(
-                Integer.parseInt(id),
-                title,
-                extraInfo,
-                Status.valueOf(status));
+    public Task getTaskFromString(String id, String title, String extraInfo,
+                                  String status, String startTime, String duration) {
+        if (startTime.equals(" ")) {
+            return new Task(
+                    Integer.parseInt(id),
+                    title,
+                    extraInfo,
+                    Status.valueOf(status));
+        } else {
+            return new Task(
+                    Integer.parseInt(id),
+                    title,
+                    extraInfo,
+                    Status.valueOf(status),
+                    LocalDateTime.parse(startTime, DateTimeFormatter.ISO_DATE_TIME),
+                    Duration.ofMinutes(Integer.parseInt(duration)));
+        }
     }
 
     public Epic getEpicFromString(String id, String title, String extraInfo) {
@@ -315,13 +366,25 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
                 extraInfo);
     }
 
-    public SubTask getSubTaskFromString(String id, String title, String extraInfo, String status, String epicID) {
-        return new SubTask(
-                Integer.parseInt(id),
-                title,
-                extraInfo,
-                Status.valueOf(status),
-                Integer.parseInt(epicID));
+    public SubTask getSubTaskFromString(String id, String title, String extraInfo,
+                                        String status, String epicID, String startTime, String duration) {
+        if (startTime.equals(" ")) {
+            return new SubTask(
+                    Integer.parseInt(id),
+                    title,
+                    extraInfo,
+                    Status.valueOf(status),
+                    Integer.parseInt(epicID));
+        } else {
+            return new SubTask(
+                    Integer.parseInt(id),
+                    title,
+                    extraInfo,
+                    Status.valueOf(status),
+                    Integer.parseInt(epicID),
+                    LocalDateTime.parse(startTime, DateTimeFormatter.ISO_DATE_TIME),
+                    Duration.ofMinutes(Integer.parseInt(duration)));
+        }
     }
 
     public String historyToString(@NotNull HistoryManager manager) {     // История в строку
@@ -353,21 +416,25 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         String[] taskArray = str.split(delimiter);
         TaskType taskType = TaskType.valueOf(taskArray[1]);
         switch (taskType) {
-            case TASK -> addTask(getTaskFromString(
-                    taskArray[0],
-                    taskArray[2],
-                    taskArray[3],
-                    taskArray[4]));
-            case EPIC -> addEpic(getEpicFromString(
-                    taskArray[0],
-                    taskArray[2],
-                    taskArray[3]));
-            case SUBTASK -> addSubTask(getSubTaskFromString(
+            case TASK -> addTaskWithExistingID(getTaskFromString(
                     taskArray[0],
                     taskArray[2],
                     taskArray[3],
                     taskArray[4],
-                    taskArray[5]));
+                    taskArray[6],
+                    taskArray[7]));
+            case EPIC -> addEpicWithExistingID(getEpicFromString(
+                    taskArray[0],
+                    taskArray[2],
+                    taskArray[3]));
+            case SUBTASK -> addSubTaskWithExistingID(getSubTaskFromString(
+                    taskArray[0],
+                    taskArray[2],
+                    taskArray[3],
+                    taskArray[4],
+                    taskArray[5],
+                    taskArray[6],
+                    taskArray[7]));
         }
     }
 

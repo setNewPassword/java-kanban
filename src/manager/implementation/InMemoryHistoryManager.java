@@ -1,8 +1,6 @@
 package manager.implementation;
-
 import manager.interfaces.HistoryManager;
 import model.Task;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

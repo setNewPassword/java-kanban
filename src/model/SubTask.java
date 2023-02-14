@@ -1,5 +1,7 @@
 package model;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 public class SubTask extends Task {
@@ -10,6 +12,11 @@ public class SubTask extends Task {
         this.epicID = epicID;
     }
 
+    public SubTask(String title, String extraInfo, int epicID, LocalDateTime startTime, Duration duration) {
+        super(title, extraInfo, Status.NEW, startTime, duration);
+        this.epicID = epicID;
+    }
+
     public SubTask(int id, String title, String extraInfo, int epicID) {
         super(id, title, extraInfo, Status.NEW);
         this.epicID = epicID;
@@ -17,6 +24,12 @@ public class SubTask extends Task {
 
     public SubTask(int id, String title, String extraInfo, Status subTaskStatus, int epicID) {
         super(id, title, extraInfo, subTaskStatus);
+        this.epicID = epicID;
+    }
+
+    public SubTask(int id, String title, String extraInfo,
+                   Status subTaskStatus, int epicID, LocalDateTime startTime, Duration duration) {
+        super(id, title, extraInfo, subTaskStatus, startTime, duration);
         this.epicID = epicID;
     }
 
@@ -33,7 +46,10 @@ public class SubTask extends Task {
                 ", epicID=" + epicID +
                 ", title='" + super.getTitle() + '\'' +
                 ", extraInfo='" + super.getExtraInfo() + '\'' +
-                ", taskStatus=" + super.getTaskStatus() + '}';
+                ", taskStatus=" + super.getTaskStatus() +
+                ", startTime=" + super.getStartTime() +
+                ", duration=" + super.getDuration() +
+                '}';
     }
 
     @Override

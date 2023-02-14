@@ -7,14 +7,15 @@ import model.Task;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public interface TaskManager {
 
-    void addTask(Task task);
+    int addTask(Task task);
 
-    void addEpic(Epic epic);
+    int addEpic(Epic epic);
 
-    void addSubTask(SubTask subTask);
+    int addSubTask(SubTask subTask);
 
     Task getTask(int id);
 
@@ -47,5 +48,7 @@ public interface TaskManager {
     void updateStatusSubTask(int id, Status subTaskStatus);
 
     HistoryManager getHistory();
+
+    List<Task> getPrioritizedTasks();
 
 }

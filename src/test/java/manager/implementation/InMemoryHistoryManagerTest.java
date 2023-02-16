@@ -67,7 +67,7 @@ public class InMemoryHistoryManagerTest {
 
         List<Task> actualHistory = historyManager.getHistory();
 
-        assertEquals(4, historyManager.getHistory().size(), "Ошибка удаления задач.");
+        assertEquals(4, actualHistory.size(), "Ошибка возвращения списка задач.");
     }
 
 }

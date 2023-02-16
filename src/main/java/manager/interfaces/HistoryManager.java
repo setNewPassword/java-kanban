@@ -1,6 +1,6 @@
-package manager.interfaces;
+package main.java.manager.interfaces;
 
-import model.Task;
+import main.java.model.Task;
 
 import java.util.List;
 

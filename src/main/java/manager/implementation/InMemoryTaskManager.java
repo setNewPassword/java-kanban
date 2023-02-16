@@ -1,11 +1,11 @@
-package manager.implementation;
-import manager.Managers;
-import manager.interfaces.HistoryManager;
-import manager.interfaces.TaskManager;
-import model.Epic;
-import model.Status;
-import model.SubTask;
-import model.Task;
+package main.java.manager.implementation;
+import main.java.manager.Managers;
+import main.java.manager.interfaces.HistoryManager;
+import main.java.manager.interfaces.TaskManager;
+import main.java.model.Epic;
+import main.java.model.Status;
+import main.java.model.SubTask;
+import main.java.model.Task;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -39,8 +39,6 @@ public class InMemoryTaskManager implements TaskManager {
                 result = 1;
             } else if (task1.getStartTime().isBefore(task2.getStartTime())) {
                 result = -1;
-            } else {
-                result = 0;
             }
         }
         return result;

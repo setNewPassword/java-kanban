@@ -1,4 +1,4 @@
-package model;
+package main.java.model;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -33,6 +33,11 @@ public class SubTask extends Task {
         this.epicID = epicID;
     }
 
+    public SubTask(int id, String title, String extraInfo, int epicID, LocalDateTime startTime, Duration duration) {
+        super(id, title, extraInfo, startTime, duration);
+        this.epicID = epicID;
+    }
+
     public int getEpicID() {
         return epicID;
     }
@@ -40,6 +45,7 @@ public class SubTask extends Task {
     public TaskType getTaskType() {
         return TaskType.SUBTASK;
     }
+
     @Override
     public String toString() {
         return "SubTask{" + "id=" + super.getId() +

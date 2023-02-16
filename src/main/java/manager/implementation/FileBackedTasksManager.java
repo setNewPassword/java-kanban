@@ -1,9 +1,9 @@
-package manager.implementation;
-import manager.Managers;
-import manager.exception.ManagerSaveException;
-import manager.interfaces.HistoryManager;
-import manager.interfaces.TaskManager;
-import model.*;
+package main.java.manager.implementation;
+import main.java.manager.Managers;
+import main.java.manager.exception.ManagerSaveException;
+import main.java.manager.interfaces.HistoryManager;
+import main.java.manager.interfaces.TaskManager;
+import main.java.model.*;
 import org.jetbrains.annotations.NotNull;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -402,7 +402,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
     }
 
     public static Optional<List<Integer>> historyListFromString(String value) { // История из строки в ArrayList
-        if (value != null) {
+        if (value != null && !value.isEmpty()) {
             List<Integer> historyList = Arrays.stream(value.split(","))
                     .map(Integer::parseInt)
                     .collect(Collectors.toList());

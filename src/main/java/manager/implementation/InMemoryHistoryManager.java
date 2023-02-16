@@ -1,6 +1,6 @@
-package manager.implementation;
-import manager.interfaces.HistoryManager;
-import model.Task;
+package main.java.manager.implementation;
+import main.java.manager.interfaces.HistoryManager;
+import main.java.model.Task;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,7 +17,6 @@ public class InMemoryHistoryManager implements HistoryManager {
     @Override
     public void add(Task task) {
         requestHistory.addLast(task);
-
     }
 
     @Override
@@ -35,7 +34,7 @@ public class InMemoryHistoryManager implements HistoryManager {
         private Node<T> head;                                           // Ссылка на голову
         private Node<T> tail;                                           // Ссылка на хвост
 
-        public void addLast(T element) {                                // Добавление элемента в историю
+        private void addLast(T element) {                               // Добавление элемента в историю
             final Node<T> oldTail = tail;                               // Сохраняем старый хвост
             final Node<T> newNode = new Node<>(oldTail, element, null); // Новая нода, prev это старый хвост
             tail = newNode;                                             // Хвост теперь новая нода

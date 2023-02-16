@@ -1,9 +1,9 @@
-import manager.Managers;
-import manager.interfaces.TaskManager;
-import model.Epic;
-import model.Status;
-import model.SubTask;
-import model.Task;
+import main.java.manager.Managers;
+import main.java.manager.interfaces.TaskManager;
+import main.java.model.Epic;
+import main.java.model.Status;
+import main.java.model.SubTask;
+import main.java.model.Task;
 
 
 public class Main {

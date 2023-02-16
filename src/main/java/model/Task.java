@@ -1,4 +1,4 @@
-package model;
+package main.java.model;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -63,6 +63,14 @@ public class Task {
         this.id = id;
         this.title = title;
         this.extraInfo = extraInfo;
+    }
+
+    public Task(int id, String title, String extraInfo, LocalDateTime startTime, Duration duration) {
+        this.id = id;
+        this.title = title;
+        this.extraInfo = extraInfo;
+        this.startTime = startTime;
+        this.duration = duration;
     }
 
     public void setTitle(String title) {

@@ -1,4 +1,4 @@
-package test.java.model;
+package model;
 
 import main.java.manager.Managers;
 import main.java.manager.interfaces.TaskManager;

@@ -46,15 +46,23 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public int addTask(Task task) {            // Присвоить таску айди и положить в хешмап
-        task.setId(taskCounter++);
+        if (task.getId() == -1) {
+            task.setId(taskCounter++);
+        }
         tasks.put(task.getId(), task);
-        compareTasksByTimeAndAddToTreeSet(task);
+        try {
+            compareTasksByTimeAndAddToTreeSet(task);
+        } catch (RuntimeException exception) {
+            System.out.println(exception.getMessage());
+        }
         return task.getId();
     }
 
     @Override
     public int addEpic(Epic epic) {            // Присвоить эпику айди и положить в хешмап
-        epic.setId(taskCounter++);
+        if (epic.getId() == -1) {
+            epic.setId(taskCounter++);
+        }
         epics.put(epic.getId(), epic);
         return epic.getId();
     }
@@ -62,17 +70,25 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public int addSubTask(SubTask subTask) {           // Присвоить сабтаску айди и положить в хешмап
         if (!epics.containsKey(subTask.getEpicID())) {  // Проверяем, есть ли эпик, который указан как родитель
-            throw new RuntimeException("Ошибка: эпик отсутствует!");
+            throw new RuntimeException("Ошибка: родительский эпик отсутствует!");
         }
-        subTask.setId(taskCounter++);
+        if (subTask.getId() == -1) {
+            subTask.setId(taskCounter++);
+        }
         subTasks.put(subTask.getId(), subTask);
-        getSubTaskList(subTask.getEpicID()).add(subTask.getId());   // Добавить айди сабтаска в список эпика-родителя
+        if (!getSubTaskList(subTask.getEpicID()).contains(subTask.getId())) {
+            getSubTaskList(subTask.getEpicID()).add(subTask.getId()); // Добавить айди сабтаска в список эпика-родителя
+        }
         updateStatusEpic(subTask.getEpicID());                      // Обновить статус эпика
         setStartTimeForEpic(subTask.getEpicID());                   // Рассчитать время начала для эпика
         setEndTimeForEpic(subTask.getEpicID());                     // Рассчитать время окончания для эпика
         setDurationForEpic(subTask.getEpicID());                    // Рассчитать продолжительность эпика
 
-        compareTasksByTimeAndAddToTreeSet(subTask);
+        try {
+            compareTasksByTimeAndAddToTreeSet(subTask);
+        } catch (RuntimeException exception) {
+            System.out.println(exception.getMessage());
+        }
         return subTask.getId();
     }
 
@@ -119,6 +135,48 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public HashMap<Integer, SubTask> getSubTasks() {            // Получение хешмапы всех сабтасков
         return subTasks;
+    }
+
+    @Override
+    public int updateTask(Task task) {
+        if (tasks.containsKey(task.getId())) {
+            listOfTasksSortedByTime.remove(task);
+            tasks.put(task.getId(), task);
+            try {
+                compareTasksByTimeAndAddToTreeSet(task);
+            } catch (RuntimeException exception) {
+                System.out.println(exception.getMessage());
+            }
+        }
+        return task.getId();
+    }
+
+    @Override
+    public int updateEpic(Epic epic) {
+        epics.put(epic.getId(), epic);
+        return epic.getId();
+    }
+
+    @Override
+    public int updateSubTask(SubTask subTask) {
+        if (subTasks.containsKey(subTask.getId())) {
+            listOfTasksSortedByTime.remove(subTask);
+            if (!epics.containsKey(subTask.getEpicID())) {
+                throw new RuntimeException("Ошибка: родительский эпик отсутствует!");
+            }
+            subTasks.put(subTask.getId(), subTask);
+            updateStatusEpic(subTask.getEpicID());
+            setStartTimeForEpic(subTask.getEpicID());
+            setEndTimeForEpic(subTask.getEpicID());
+            setDurationForEpic(subTask.getEpicID());
+
+            try {
+                compareTasksByTimeAndAddToTreeSet(subTask);
+            } catch (RuntimeException exception) {
+                System.out.println(exception.getMessage());
+            }
+        }
+        return subTask.getId();
     }
 
     @Override
@@ -282,7 +340,7 @@ public class InMemoryTaskManager implements TaskManager {
         return history;
     }
 
-    private void compareTasksByTimeAndAddToTreeSet(Task task) {
+    void compareTasksByTimeAndAddToTreeSet(Task task) {
         listOfTasksSortedByTime.add(task);                      // Кладем задачу в сортированный список
         LocalDateTime prev = LocalDateTime.MIN;                 // Минимально возможная дата
         for (Task currentTask : listOfTasksSortedByTime) {

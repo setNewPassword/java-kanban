@@ -1,4 +1,4 @@
-package test.java.manager.implementation;
+package implementation;
 
 import main.java.manager.interfaces.HistoryManager;
 import main.java.manager.interfaces.TaskManager;
@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 abstract class TaskManagerTest<T extends TaskManager> {
     public T taskManager;
 
-    abstract T createTaskManager();
+    abstract T createTaskManager() throws IOException, InterruptedException;
 
     protected LocalDateTime dateTime1 = LocalDateTime.of(2023, 2, 12, 11, 30);
     protected LocalDateTime dateTime2 = LocalDateTime.of(2023, 2, 12, 11, 45);
@@ -36,7 +37,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
     protected Epic epic1 = new Epic("Title of Epic-1", "Description for Epic-1");
 
     @BeforeEach
-    public void updateTaskManager() {
+    public void updateTaskManager() throws IOException, InterruptedException {
         taskManager = createTaskManager();
     }
 
@@ -114,6 +115,21 @@ abstract class TaskManagerTest<T extends TaskManager> {
     }
 
     @Test
+    void shouldReturnListOfSubTasksId() {
+        final int epicID = taskManager.addEpic(epic1);
+        SubTask subTask1 = new SubTask("Title for SubTask-1", "Description for SubTask-1",
+                epicID, dateTime1, duration10);
+        SubTask subTask2 = new SubTask("Title for SubTask-2", "Description for SubTask-2",
+                epicID, dateTime2, duration20);
+        final int subTask1id = taskManager.addSubTask(subTask1);
+        taskManager.addSubTask(subTask2);
+
+        assertNotNull(taskManager.getSubTaskList(epicID), "Список сабтасков не возвращен.");
+        assertEquals(2, taskManager.getSubTaskList(epicID).size(), "Неверное число сабТасков.");
+        assertEquals(subTask1id, taskManager.getSubTaskList(epicID).get(0), "Неверное айди сабТаска.");
+    }
+
+    @Test
     void shouldCalculateStartTimeAndEndTime() {
         final int epicID = taskManager.addEpic(epic1);
         SubTask subTask1 = new SubTask("Title for SubTask-1", "Description for SubTask-1",
@@ -142,7 +158,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
         RuntimeException ex = Assertions.assertThrows(RuntimeException.class, executable);
 
-        assertEquals("Ошибка: эпик отсутствует!", ex.getMessage());
+        assertEquals("Ошибка: родительский эпик отсутствует!", ex.getMessage());
     }
 
     @Test
@@ -339,13 +355,46 @@ abstract class TaskManagerTest<T extends TaskManager> {
     }
 
     @Test
-    void ShouldThrowExceptionWhenTimeIntersection() {
+    void ShouldNotAddTasksToTreeSetWhenTimeIntersection() {
         taskManager.addTask(task1Long);
-        Executable executable = () -> taskManager.addTask(task2);
+        taskManager.addTask(task2);
 
-        RuntimeException ex = Assertions.assertThrows(RuntimeException.class, executable);
+        assertNotNull(taskManager.getPrioritizedTasks(), "Ошибка возвращения списка тасков в порядке времени.");
+        assertEquals(1, taskManager.getPrioritizedTasks().size(),
+                "Размер списка задач не соответствует ожидаемому.");
+    }
 
-        assertEquals("Произошло пересечение задач по времени. Добавленная задача будет удалена.",
-                ex.getMessage());
+    @Test
+    void ShouldUpdateExistingTask() {
+        final int id = taskManager.addTask(task1);
+        Task actualTask = taskManager.getTask(id);
+        actualTask.setTitle("Updated title");
+        taskManager.updateTask(actualTask);
+
+        assertEquals("Updated title", taskManager.getTask(id).getTitle(), "Ошибка обновления таска.");
+    }
+
+    @Test
+    void ShouldUpdateExistingEpic() {
+        final int id = taskManager.addEpic(epic1);
+        Epic actualEpic = taskManager.getEpic(id);
+        actualEpic.setTitle("Updated title");
+        taskManager.updateEpic(actualEpic);
+
+        assertEquals("Updated title", taskManager.getEpic(id).getTitle(), "Ошибка обновления таска.");
+    }
+
+    @Test
+    void ShouldUpdateExistingSubTask() {
+        final int epicID = taskManager.addEpic(epic1);
+        SubTask subTask1 = new SubTask("Title for SubTask-1", "Description for SubTask-1",
+                epicID, dateTime1, duration10);
+        final int subTask1id = taskManager.addSubTask(subTask1);
+        SubTask actualSubTask = taskManager.getSubTask(subTask1id);
+        actualSubTask.setTitle("Updated title");
+        taskManager.updateSubTask(actualSubTask);
+
+        assertEquals("Updated title",
+                taskManager.getSubTask(subTask1id).getTitle(), "Ошибка обновления таска.");
     }
 }

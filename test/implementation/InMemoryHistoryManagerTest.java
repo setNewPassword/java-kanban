@@ -1,4 +1,4 @@
-package test.java.manager.implementation;
+package implementation;
 
 import main.java.manager.implementation.InMemoryHistoryManager;
 import main.java.manager.interfaces.HistoryManager;

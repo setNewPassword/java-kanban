@@ -29,6 +29,12 @@ public interface TaskManager {
 
     HashMap<Integer, SubTask> getSubTasks();
 
+    int updateTask(Task task);
+
+    int updateEpic(Epic epic);
+
+    int updateSubTask(SubTask subTask);
+
     void clearTasks();
 
     void clearEpics();

@@ -6,6 +6,7 @@ import main.java.manager.interfaces.TaskManager;
 import main.java.model.*;
 import org.jetbrains.annotations.NotNull;
 import java.io.*;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -16,13 +17,18 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class FileBackedTasksManager extends InMemoryTaskManager {
+    private URI uri;
 
-    private final Path path;                // Путь для сохранения файла бэкапа
+    private Path path;                      // Путь для сохранения файла бэкапа
     private final String delimiter = ";";   // Разделитель для CSV. Пока не решил, как разделять поля,
                                             // поэтому разделитель в переменной, чтоб не переписывать его в методах.
 
     public FileBackedTasksManager(@NotNull File file) {
         this.path = file.toPath();
+    }
+
+    public FileBackedTasksManager(URI uri) {
+        this.uri = uri;
     }
 
     public static void main(String[] args) {
@@ -160,14 +166,6 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         }
     }
 
-
-    // Так как айди задач нам не нужно присваивать заново, а нужно взять их из файла,
-    // то нужно переопределить методы добавления задач без участия счетчика айдишников.
-    public void addTaskWithExistingID(Task task) {
-        getTasks().put(task.getId(), task);
-        save();
-    }
-
     @Override
     public int addTask(Task task) {
         super.addTask(task);
@@ -175,26 +173,11 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         return task.getId();
     }
 
-    public void addEpicWithExistingID(Epic epic) {
-        getEpics().put(epic.getId(), epic);
-        save();
-    }
-
     @Override
     public int addEpic(Epic epic) {
         super.addEpic(epic);
         save();
         return epic.getId();
-    }
-
-    public void addSubTaskWithExistingID(@NotNull SubTask subTask) {
-        if (!getEpics().containsKey(subTask.getEpicID())) {
-            throw new RuntimeException("Ошибка: эпик отсутствует!");
-        }
-        super.getSubTasks().put(subTask.getId(), subTask);
-        getSubTaskList(subTask.getEpicID()).add(subTask.getId());   // Добавить айди сабтаска в список эпика-родителя
-        updateStatusEpic(subTask.getEpicID());                      // Обновить статус эпика
-        save();
     }
 
     @Override
@@ -260,6 +243,27 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         SubTask subTask = super.getSubTask(id);
         save();
         return subTask;
+    }
+
+    @Override
+    public int updateTask(Task task) {
+        super.updateTask(task);
+        save();
+        return task.getId();
+    }
+
+    @Override
+    public int updateEpic(Epic epic) {
+        super.updateEpic(epic);
+        save();
+        return epic.getId();
+    }
+
+    @Override
+    public int updateSubTask(SubTask subTask) {
+        super.updateSubTask(subTask);
+        save();
+        return subTask.getId();
     }
 
     @Override
@@ -416,18 +420,18 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         String[] taskArray = str.split(delimiter);
         TaskType taskType = TaskType.valueOf(taskArray[1]);
         switch (taskType) {
-            case TASK -> addTaskWithExistingID(getTaskFromString(
+            case TASK -> addTask(getTaskFromString(
                     taskArray[0],
                     taskArray[2],
                     taskArray[3],
                     taskArray[4],
                     taskArray[6],
                     taskArray[7]));
-            case EPIC -> addEpicWithExistingID(getEpicFromString(
+            case EPIC -> addEpic(getEpicFromString(
                     taskArray[0],
                     taskArray[2],
                     taskArray[3]));
-            case SUBTASK -> addSubTaskWithExistingID(getSubTaskFromString(
+            case SUBTASK -> addSubTask(getSubTaskFromString(
                     taskArray[0],
                     taskArray[2],
                     taskArray[3],

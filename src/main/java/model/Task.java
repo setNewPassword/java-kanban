@@ -8,7 +8,7 @@ import java.util.Optional;
 public class Task {
     private String title;
     private String extraInfo;
-    private int id;
+    private int id = -1;
     private Status taskStatus;
     private LocalDateTime startTime;
     private Duration duration;
@@ -75,10 +75,6 @@ public class Task {
 
     public void setTitle(String title) {
         this.title = title;
-    }
-
-    public void setExtraInfo(String extraInfo) {
-        this.extraInfo = extraInfo;
     }
 
     public void setId(int id) {

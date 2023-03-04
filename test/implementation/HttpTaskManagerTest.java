@@ -1,38 +1,39 @@
-package test.java.manager.implementation;
+package implementation;
 
-import main.java.manager.implementation.FileBackedTasksManager;
+import main.java.manager.Managers;
+import main.java.manager.implementation.HttpTaskManager;
+import main.java.manager.servers.KVServer;
 import main.java.model.SubTask;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.net.URI;
 
-import static main.java.manager.Managers.getDefaultFBTM;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class FileBackedTasksManagerTest extends TaskManagerTest<FileBackedTasksManager>{
+public class HttpTaskManagerTest extends TaskManagerTest<HttpTaskManager> {
+
+    KVServer kvServer;
 
     @Override
-    FileBackedTasksManager createTaskManager() {
-        return getDefaultFBTM();
+    HttpTaskManager createTaskManager() throws IOException, InterruptedException {
+        try {
+            kvServer = new KVServer();
+            kvServer.start();
+        } catch (IOException e) {
+            System.out.println("Ошибка запуска KVServer.");
+        }
+        return (HttpTaskManager) Managers.getDefault();
     }
 
     @AfterEach
-    public void deleteCSV() {
-        File tmp = new File("src/main/java/manager/implementation/Testing.csv");
-        try (RandomAccessFile raf = new RandomAccessFile(tmp, "rw")) {
-            if (tmp.exists()) {
-                raf.setLength(0);
-            }
-        } catch (IOException exception) {
-            System.out.println("Ошибка при очистке файла между тестами.");
-        }
+    public void stopServer() {
+        kvServer.stop();
     }
 
     @Test
-    void shouldSaveAndRestoreManagerWithEmptyHistory() {
+    void shouldSaveAndRestoreManagerWithEmptyHistory() throws IOException, InterruptedException {
         taskManager.addTask(task1);
         taskManager.addTask(task2);
         int epic1id = taskManager.addEpic(epic1);
@@ -43,8 +44,8 @@ public class FileBackedTasksManagerTest extends TaskManagerTest<FileBackedTasksM
         taskManager.addSubTask(subTask1);
         taskManager.addSubTask(subTask2);
 
-        FileBackedTasksManager restoredManager = FileBackedTasksManager
-                .loadFromFile(new File("src/main/java/manager/implementation/Testing.csv"));
+        HttpTaskManager restoredManager = new HttpTaskManager(URI.create("http://localhost:8078/"));
+        restoredManager.getKvTaskClient().setApiToken(taskManager.getKvTaskClient().getApiToken());
 
         assertEquals(2, restoredManager.getTasks().size(), "Число тасков отличается от исходного.");
         assertEquals(1, restoredManager.getEpics().size(), "Число эпиков отличается от исходного.");
@@ -52,7 +53,7 @@ public class FileBackedTasksManagerTest extends TaskManagerTest<FileBackedTasksM
     }
 
     @Test
-    void shouldReturnEmptyHistory() {
+    void shouldReturnEmptyHistory() throws IOException, InterruptedException {
         taskManager.addTask(task1);
         taskManager.addTask(task2);
         int epic1id = taskManager.addEpic(epic1);
@@ -63,8 +64,8 @@ public class FileBackedTasksManagerTest extends TaskManagerTest<FileBackedTasksM
         taskManager.addSubTask(subTask1);
         taskManager.addSubTask(subTask2);
 
-        FileBackedTasksManager restoredManager = FileBackedTasksManager
-                .loadFromFile(new File("src/main/java/manager/implementation/Testing.csv"));
+        HttpTaskManager restoredManager = new HttpTaskManager(URI.create("http://localhost:8078/"));
+        restoredManager.getKvTaskClient().setApiToken(taskManager.getKvTaskClient().getApiToken());
 
         assertEquals(0, taskManager.getHistory().getHistory().size(),
                 "Размер списка истории у исходного менеджера отличается от нуля.");
@@ -73,7 +74,7 @@ public class FileBackedTasksManagerTest extends TaskManagerTest<FileBackedTasksM
     }
 
     @Test
-    void shouldSaveAndRestoreManagerWithExistingHistory() {
+    void shouldSaveAndRestoreManagerWithExistingHistory() throws IOException, InterruptedException {
         int task1id = taskManager.addTask(task1);
         int task2id = taskManager.addTask(task2);
         int epic1id = taskManager.addEpic(epic1);
@@ -88,8 +89,8 @@ public class FileBackedTasksManagerTest extends TaskManagerTest<FileBackedTasksM
         taskManager.getEpic(epic1id);
         taskManager.getTask(task2id);
         taskManager.getTask(task1id);
-        FileBackedTasksManager restoredManager = FileBackedTasksManager
-                .loadFromFile(new File("src/main/java/manager/implementation/Testing.csv"));
+        HttpTaskManager restoredManager = new HttpTaskManager(URI.create("http://localhost:8078/"));
+        restoredManager.getKvTaskClient().setApiToken(taskManager.getKvTaskClient().getApiToken());
 
 
         assertEquals(5, restoredManager.getHistory().getHistory().size(),

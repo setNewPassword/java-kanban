@@ -2,6 +2,7 @@ package main.java.manager.client;
 
 import main.java.manager.exception.KVTaskClientLoadException;
 import main.java.manager.exception.KVTaskClientPutException;
+import main.java.manager.exception.KVTaskClientRegisterException;
 
 import java.io.IOException;
 import java.net.URI;
@@ -31,7 +32,7 @@ public class KVTaskClient {
                 .build();
         HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
         if (response.statusCode() != 200) {
-            throw new RuntimeException("Ошибка регистрации и получения токена.");
+            throw new KVTaskClientRegisterException("Ошибка регистрации и получения токена.");
         }
         return response.body();
     }

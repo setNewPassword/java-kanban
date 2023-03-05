@@ -1,13 +1,13 @@
-package main.java.manager.servers;
+package main.java.manager.client;
 
-import javax.net.ssl.SSLSession;
+import main.java.manager.exception.KVTaskClientLoadException;
+import main.java.manager.exception.KVTaskClientPutException;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
-import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.Optional;
 
 public class KVTaskClient {
     private final URI uri;
@@ -18,10 +18,10 @@ public class KVTaskClient {
     public KVTaskClient(URI uri) throws IOException, InterruptedException {
         this.uri = uri;
         httpClient = HttpClient.newHttpClient();
-        apiToken = register(httpClient, uri);
+        apiToken = register(uri);
     }
 
-    private String register(HttpClient httpClient, URI receivedUri) throws IOException, InterruptedException {
+    private String register(URI receivedUri) throws IOException, InterruptedException {
         URI uri = URI.create(receivedUri.toString() + "register");
         HttpRequest httpRequest = HttpRequest.newBuilder()
                 .uri(uri)
@@ -43,55 +43,16 @@ public class KVTaskClient {
                 .POST(HttpRequest.BodyPublishers.ofString(json))
                 .version(HttpClient.Version.HTTP_1_1)
                 .build();
-        HttpResponse<String> response = new HttpResponse<String>() {
-            @Override
-            public int statusCode() {
-                return 0;
-            }
-
-            @Override
-            public HttpRequest request() {
-                return null;
-            }
-
-            @Override
-            public Optional<HttpResponse<String>> previousResponse() {
-                return Optional.empty();
-            }
-
-            @Override
-            public HttpHeaders headers() {
-                return null;
-            }
-
-            @Override
-            public String body() {
-                return null;
-            }
-
-            @Override
-            public Optional<SSLSession> sslSession() {
-                return Optional.empty();
-            }
-
-            @Override
-            public URI uri() {
-                return null;
-            }
-
-            @Override
-            public HttpClient.Version version() {
-                return null;
-            }
-        };
+        HttpResponse<String> response = null;
         try {
             response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
         } catch (IOException exception) {
-            System.out.println(response);
+            System.out.println("Ошибка отправки данных на сервер.");
         }
 
+        assert response != null;
         if (response.statusCode() != 200) {
-            throw new RuntimeException("Ошибка сохранения данных на сервер.");
+            throw new KVTaskClientPutException("Ошибка сохранения данных на сервер.");
         }
     }
 
@@ -106,7 +67,7 @@ public class KVTaskClient {
         HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
         if (response.statusCode() != 200) {
             System.out.println("Код ответа: " + response.statusCode());
-            throw new RuntimeException("Ошибка получения данных с сервера.");
+            throw new KVTaskClientLoadException("Ошибка получения данных с сервера.");
         }
         return response.body();
     }

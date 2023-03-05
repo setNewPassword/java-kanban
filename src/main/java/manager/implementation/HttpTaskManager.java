@@ -3,7 +3,7 @@ package main.java.manager.implementation;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import main.java.manager.Managers;
-import main.java.manager.servers.KVTaskClient;
+import main.java.manager.client.KVTaskClient;
 import main.java.model.Epic;
 import main.java.model.SubTask;
 import main.java.model.Task;
